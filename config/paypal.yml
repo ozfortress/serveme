@@ -1,3 +1,9 @@
+production: &default
+  mode: sandbox
+  client_id: foo
+  client_secret: bar
+  rest_endpoint: https://api.sandbox.paypal.com
+
 development: &default
   mode: sandbox
   client_id: foo
