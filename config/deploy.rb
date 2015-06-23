@@ -2,15 +2,15 @@ require './config/boot'
 require 'puma/capistrano'
 require "./config/deploy/logdaemon"
 
-set :stages,            %w(eu na au)
-set :default_stage,     "eu"
+set :stages,            %w(au)
+set :default_stage,     "au"
 set :application,       "serveme"
 set :deploy_to,         "/var/www/serveme"
 set :use_sudo,          false
-set :main_server,       "fakkelbrigade.eu"
+set :main_server,       "ozfortress.com"
 set :keep_releases,     10
 set :deploy_via,        :remote_cache
-set :repository,        "https://github.com/Arie/serveme.git"
+set :repository,        "https://github.com/ozfortress/serveme.git"
 set :branch,            'master'
 set :scm,               :git
 set :copy_compression,  :gzip
