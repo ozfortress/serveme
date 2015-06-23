@@ -1,0 +1,17 @@
+user: www-data
+group: www-data
+pid: tmp/serveme.pid
+timeout: 30
+wait: 30
+log: /var/log/thin/thin.log
+max_conns: 1024
+require: []
+environment: production
+max_persistent_conns: 512
+servers: 1
+threaded: true
+no-epoll: true
+daemonize: true
+socket: tmp/sockets/thin.sock
+chdir: /data/serveme
+tag: thin-serveme
