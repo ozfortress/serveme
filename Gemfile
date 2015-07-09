@@ -119,3 +119,6 @@ gem 'font-awesome-rails'
 gem 'coffee-rails'
 
 gem 'newrelic_rpm'
+
+gem 'thin'
+gem 'warden'

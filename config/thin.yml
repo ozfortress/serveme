@@ -1,6 +1,8 @@
 user: www-data
 group: www-data
 pid: tmp/serveme.pid
+address: localhost
+port: 4010
 timeout: 30
 wait: 30
 log: /var/log/thin/thin.log
@@ -12,6 +14,6 @@ servers: 1
 threaded: true
 no-epoll: true
 daemonize: true
-socket: tmp/sockets/thin.sock
+#socket: tmp/sockets/thin.sock
 chdir: /data/serveme
 tag: thin-serveme
