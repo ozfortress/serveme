@@ -43,7 +43,7 @@ Serveme::Application.configure do
 
   # Use a different cache store in production
   config.cache_store = :dalli_store, '127.0.0.1:11211',
-    { :namespace => 'serveme', :expires_in => 1.hour }
+    { :namespace => 'serveme', :expires_in => 1.hour, :pool_size => 25 }
   config.action_dispatch.rack_cache = {
     :metastore    => Dalli::Client.new,
     :entitystore  => 'file:tmp/cache/rack/body',
@@ -53,9 +53,6 @@ Serveme::Application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"
 
-  # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-  config.assets.precompile += %w( themes/white.css themes/black.css )
-
   # Disable delivery errors, bad email addresses will be ignored
   # config.action_mailer.raise_delivery_errors = false
 
@@ -63,6 +60,7 @@ Serveme::Application.configure do
   config.active_support.deprecation = :notify
 
   config.eager_load = false
+  config.log_level = :info
   config.lograge.enabled = true
   config.lograge.custom_options = lambda do |event|
     {

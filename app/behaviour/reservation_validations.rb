@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ReservationValidations
   def self.included(mod)
     mod.class_eval do
@@ -11,6 +12,7 @@ module ReservationValidations
       validates_with Reservations::OnlyOneFutureReservationPerUserValidator,  :unless => :donator?
       validates_with Reservations::StartsNotTooFarInFutureValidator,          :unless => :donator?
       validates_with Reservations::MapIsValidValidator
+      validates_with Reservations::PluginsDisabledValidator,                  :unless => :donator?
     end
   end
 end

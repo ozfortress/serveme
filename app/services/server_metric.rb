@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class ServerMetric
 
   delegate :server, :map_name, :cpu, :traffic_in, :traffic_out, :uptime, :fps, :to => :server_info
@@ -6,10 +7,13 @@ class ServerMetric
 
   def initialize(server_info)
     @server_info = server_info
-    if current_reservation && players_playing?
+    if current_reservation
       save_server_statistics
-      save_player_statistics
+      if players_playing?
+        save_player_statistics
+      end
     end
+    nil
   end
 
   def save_server_statistics
@@ -24,8 +28,9 @@ class ServerMetric
   end
 
   def save_player_statistics
+    parser = RconStatusParser.new(server_info.get_rcon_status)
     PlayerStatistic.transaction do
-      RconStatusParser.new(server_info.get_rcon_status).players.each do |player|
+      parser.players.each do |player|
         if player.relevant?
           rp = ReservationPlayer.where(:reservation => current_reservation, :steam_uid => player.steam_uid).first_or_create(:name => player.name, :ip => player.ip)
           PlayerStatistic.create!(:reservation_player => rp,

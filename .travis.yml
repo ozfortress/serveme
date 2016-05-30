@@ -1,9 +1,8 @@
 language: ruby
 cache: bundler
 rvm:
-  - 2.0
-  - 2.1
   - 2.2
+  - 2.3.0
     #- rbx
     #- jruby-19mode
 addons:
@@ -15,3 +14,6 @@ before_script:
   - mkdir public/uploads
 script: ./script/ci
 sudo: false
+services:
+  - memcached
+  - redis-server

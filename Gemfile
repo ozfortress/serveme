@@ -9,10 +9,10 @@ gem 'puma'
 gem 'omniauth-openid'
 gem 'omniauth-steam'
 gem 'devise'
-gem 'rubyzip'
-gem 'steam-condenser', :github => 'Arie/steam-condenser-ruby'
+gem 'steam-condenser', :github => 'koraktor/steam-condenser-ruby'
 gem 'logs_tf'
 gem 'base32_pure'
+gem 'remote_lock',     :github => "Arie/remote_lock"
 
 gem 'lograge'
 
@@ -25,7 +25,6 @@ gem 'tf2_line_parser'
 gem 'eventmachine'
 gem 'dante'
 
-gem 'net-ssh-simple'
 gem 'net-ssh'
 gem 'net-sftp'
 gem 'draper'
@@ -35,9 +34,13 @@ gem "google_visualr"
 gem 'rack-cache'
 gem 'paypal-sdk-rest'
 gem 'sidekiq'
-gem 'sidetiq'
+gem 'sidekiq-cron'
 gem 'geoip'
 gem 'geocoder'
+gem 'rbtrace'
+
+gem 'dalli'
+gem 'connection_pool'
 
 gem 'sinatra', '>= 1.3.0', :require => nil
 #NFO server restarts
@@ -51,7 +54,6 @@ gem 'ffi'
 gem 'pg'
 gem 'therubyracer'
 gem 'oily_png'
-gem 'sys-proctable', '~> 0.9.4', :require => 'sys/proctable'
 
 
 group :development do
@@ -93,7 +95,6 @@ end
 
 group :production do
   gem "sentry-raven"
-  gem 'dalli'
 end
 
 group :test do
@@ -108,9 +109,10 @@ end
 
 gem 'uglifier'
 gem 'jquery-rails'
-gem 'compass-rails', github: 'Compass/compass-rails'
+gem 'compass-rails'
 gem 'sass'
 gem 'sass-rails'
+gem 'sassc'
 gem 'bootstrap-sass'
 gem 'simple_form'
 gem 'will_paginate-bootstrap'

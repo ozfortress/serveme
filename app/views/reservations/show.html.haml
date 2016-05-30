@@ -1,3 +1,7 @@
+:javascript
+  reservation_status_url = "#{status_reservation_path(reservation)}";
+  getReservationStatus();
+
 %h3
   Reservation:
   = reservation.to_s
@@ -6,6 +10,13 @@
   .col-md-10
 
     %table.table.table-hover.table-bordered.table-striped
+      %tr
+        %td Status
+        %td
+          #reservation_status
+            #reservation_status_spinner
+              %i.fa.fa-spinner.fa-spin.reservation_status_spinner
+            #reservation_status_message= reservation.status.titleize
       %tr
         %td Actions
         %td.actions= render 'actions'
@@ -88,6 +99,15 @@
             - ip_and_port = "#{reservation.server.ip}:#{reservation.server.port}"
             = link_to "http://live.fakkelbrigade.eu/matches/new?host=#{ip_and_port}&rcon=#{reservation.rcon}&logsecret=#{reservation.logsecret}", :title => "create livestats", :class => "btn btn-xs btn-warning", :target => "_blank" do
               Livestats
+              %i.fa.fa-bar-chart
+        %tr
+          %td Stats
+          %td
+            = link_to show_reservation_statistic_path(reservation),         :title => "Player stats", :class => "btn btn-xs btn-info" do
+              Player stats
+              %i.fa.fa-bar-chart
+            = link_to show_reservation_server_statistic_path(reservation),  :title => "Server stats", :class => "btn btn-xs btn-primary" do
+              Server stats
               %i.fa.fa-bar-chart
 
 

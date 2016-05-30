@@ -1,8 +1,6 @@
+# frozen_string_literal: true
 class CleanupWorker
   include Sidekiq::Worker
-  include Sidetiq::Schedulable
-
-  recurrence { daily.hour_of_day(6) }
 
   def perform
     remove_old_reservation_logs_and_zips
@@ -10,7 +8,7 @@ class CleanupWorker
   end
 
   def remove_old_reservation_logs_and_zips
-    old_reservations.each do |reservation|
+    old_reservations.find_each do |reservation|
       logs_dir = Rails.root.join("server_logs", "#{reservation.id}")
       zip = Rails.root.join("public", "uploads", "#{reservation.zipfile_name}")
       if Dir.exists?(logs_dir)

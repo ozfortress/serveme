@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class LocalServer < Server
 
   def remove_configuration
@@ -12,12 +13,17 @@ class LocalServer < Server
     end
   end
 
-  def find_process_id
-    all_processes   = Sys::ProcTable.ps
-    found_processes = all_processes.select {|process| process.cmdline.match(/#{port}/) && process.cmdline.match(/\.\/srcds_linux/) && !process.cmdline.match(/\.\/tv_relay/) }
-    if found_processes.any?
-      found_processes.first.pid
+  def restart
+    if process_id
+      logger.info "Killing process id #{process_id}"
+      kill_process
+    else
+      logger.error "No process_id found for server #{id} - #{name}"
     end
+  end
+
+  def find_process_id
+    `ps ux | grep port | grep #{port} | grep srcds_linux | grep -v grep | grep -v ruby | awk '{print \$2}'`
   end
 
   def demos
@@ -35,7 +41,7 @@ class LocalServer < Server
   end
 
   def copy_to_server(files, destination)
-    FileUtils.cp(files, destination)
+    system("cp #{files.map(&:shellescape).join(" ")} #{destination}")
   end
 
   def remove_logs_and_demos

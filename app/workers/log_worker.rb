@@ -1,9 +1,15 @@
+# frozen_string_literal: true
 class LogWorker
-  require 'action_view'
-  include ActionView::Helpers::TextHelper
   include Sidekiq::Worker
 
   attr_accessor :raw_line, :line, :event, :reservation_id, :message
+
+  MAP_START         = /(Started map\ "(\w+)")/
+  END_COMMAND       = /!end.*/
+  EXTEND_COMMAND    = /!extend.*/
+  RCON_COMMAND      = /!rcon.*/
+  TIMELEFT_COMMAND  = /!timeleft.*/
+  LOG_LINE_REGEX    = '(?\'secret\'\d*)(?\'line\'.*)'
 
   def perform(raw_line)
     @raw_line         = raw_line
@@ -17,7 +23,7 @@ class LogWorker
       @message = event.message
       handle_message
     elsif event.is_a?(TF2LineParser::Events::Unknown)
-      mapstart = event.unknown.match(/(Started map\ "(\w+)")/)
+      mapstart = event.unknown.match(MAP_START)
       if mapstart
         map = mapstart[2]
         if map == "ctf_turbine"
@@ -34,6 +40,7 @@ class LogWorker
     if action
       reservation.status_update("#{event.player.name} (#{sayer_steam_uid}): #{event.message}")
       send(action)
+      reservation.server.rcon_disconnect
     end
   end
 
@@ -55,39 +62,33 @@ class LogWorker
 
   def handle_rcon
     rcon_command = message.split(" ")[1..-1].join(" ")
-    if rcon_command
+    if !rcon_command.empty?
       Rails.logger.info "Sending rcon command #{rcon_command} from chat for reservation #{reservation}"
       reservation.server.rcon_exec(rcon_command)
     end
   end
 
-  def handle_rate
-    RateWorker.perform_async(reservation.id, sayer_steam_uid, event.player.name, message)
-  end
-
   def handle_timeleft
     minutes_until_reservation_ends = ((reservation.ends_at - Time.current) / 60).round
     minutes = [minutes_until_reservation_ends, 0].max
-    timeleft = pluralize(minutes, "minute")
+    timeleft = (minutes > 0) ? "#{minutes} minutes" : "#{minutes} minutes"
     reservation.server.rcon_say "Reservation time left: #{timeleft}"
   end
 
   def action_for_message_said_by_reserver
     case message
-    when /!end.*/
+    when END_COMMAND
       :handle_end
-    when /!extend.*/
+    when EXTEND_COMMAND
       :handle_extend
-    when /!rcon .*/
+    when RCON_COMMAND
       :handle_rcon
     end
   end
 
   def action_for_message_said_by_anyone
     case message
-    when /!rate.*/
-      :handle_rate
-    when /!timeleft.*/
+    when TIMELEFT_COMMAND
       :handle_timeleft
     end
   end
@@ -123,7 +124,7 @@ class LogWorker
   end
 
   def reservation_id
-    matches = raw_line.match('(?\'secret\'\d*)(?\'line\'.*)')
+    matches = raw_line.match(LOG_LINE_REGEX)
     if matches
       if matches[:line]
         @line = matches[:line]

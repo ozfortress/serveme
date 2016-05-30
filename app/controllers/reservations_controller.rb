@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class ReservationsController < ApplicationController
 
   include ReservationsHelper
@@ -13,9 +14,9 @@ class ReservationsController < ApplicationController
   def create
     @reservation = current_user.reservations.build(reservation_params)
     if @reservation.valid?
-      @reservation.server.with_lock do
-        @reservation.save!
-      end
+        $lock.synchronize("save-reservation-server-#{@reservation.server_id}") do
+          @reservation.save!
+        end
       reservation_saved if @reservation.persisted?
     else
       render :new
@@ -25,7 +26,7 @@ class ReservationsController < ApplicationController
   def i_am_feeling_lucky
     @reservation = IAmFeelingLucky.new(current_user).build_reservation
     if @reservation.valid?
-      @reservation.server.with_lock do
+      $lock.synchronize("save-reservation-server-#{@reservation.server_id}") do
         @reservation.save!
       end
       reservation_saved if @reservation.persisted?
@@ -88,6 +89,13 @@ class ReservationsController < ApplicationController
     flash[:notice] = "Reservation idle timer reset"
     reservation.update_attribute(:inactive_minute_counter, 0)
     redirect_to reservation_path(reservation)
+  end
+
+  def status
+    reservation
+    respond_to do |format|
+      format.json
+    end
   end
 
   private

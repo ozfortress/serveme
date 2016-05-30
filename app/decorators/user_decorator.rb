@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class UserDecorator < Draper::Decorator
   include Draper::LazyHelpers
   delegate_all
@@ -15,7 +16,7 @@ class UserDecorator < Draper::Decorator
   private
 
   def donator_icon
-    content_tag(:icon, "".html_safe, :class => "fa fa-star", :title => "Donator")
+    content_tag(:icon, "".html_safe, :class => "fa fa-star", :title => "Premium")
   end
 
 end

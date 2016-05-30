@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Api::ReservationsController < Api::ApplicationController
 
   include ReservationsHelper
@@ -17,7 +18,7 @@ class Api::ReservationsController < Api::ApplicationController
   def create
     @reservation = current_user.reservations.build(reservation_params)
     if @reservation.valid?
-      @reservation.server.with_lock do
+      $lock.synchronize("save-reservation-server-#{@reservation.server_id}") do
         @reservation.save!
       end
       if @reservation.persisted? && @reservation.now?

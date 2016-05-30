@@ -2,11 +2,6 @@ require 'spec_helper'
 
 describe LocalServer do
 
-  it { should validate_presence_of(:path) }
-  it { should validate_presence_of(:ip) }
-  it { should validate_presence_of(:port) }
-  it { should validate_presence_of(:name) }
-
   describe '.with_group' do
 
     it 'should find servers in a group' do
@@ -39,7 +34,7 @@ describe LocalServer do
       server_not_in_group = create :server, :name => "server in no groups"
       server_other_group  = create :server, :name => "server other group", :groups => [other_group]
 
-      Server.in_groups([group]).should eq [server_in_group]
+      Server.in_groups(Group.where(id: group.id)).should eq [server_in_group]
     end
 
     it 'should only return servers once even with multiple matching groups' do
@@ -50,7 +45,7 @@ describe LocalServer do
       server_not_in_group = create :server, :name => "server in no groups"
       server_other_group  = create :server, :name => "server other group", :groups => [other_group]
 
-      Server.in_groups([group, group2]).should eq [server_in_group]
+      Server.in_groups(Group.where(id: [group.id, group2.id])).should eq [server_in_group]
     end
 
   end
@@ -117,8 +112,9 @@ describe LocalServer do
       subject.should_receive(:disable_plugins)
       subject.should_receive(:remove_logs_and_demos)
       subject.should_receive(:remove_configuration)
-      subject.should_receive(:rcon_exec).twice
+      subject.should_receive(:rcon_exec).once
       subject.should_receive(:restart)
+      subject.should_receive(:rcon_disconnect)
       subject.end_reservation(reservation)
     end
 
@@ -155,29 +151,6 @@ describe LocalServer do
 
   end
 
-  describe '#find_process_id' do
-    it 'picks the correct pid from the list' do
-      correct_process = './srcds_linux -game tf -port 27015 -autoupdate +ip 176.9.138.143 +maxplayers 24 +map ctf_turbine -tickrate 66 +tv_port 27020 +tv_maxclients 32 +tv_enable 1"'
-      other_processes = ["/bin/sh ./srcds_run -ip 176.9.138.143 -game tf -console +tv_maxclients 255 +exec relay.cfg +tv_port 27100 +tv_relay relay.vanillatv.org:27100 +password +tv_autorecord 1",
-                        "./srcds_linux -ip 176.9.138.143 -game tf -console +tv_maxclients 255 +exec relay.cfg +tv_port 27100 +tv_relay relay.vanillatv.org:27100 +password +tv_autorecord 1",
-                        "SCREEN -AmdS tf2-4 ./srcds_run -game tf -port 27045 -autoupdate +ip 176.9.138.143 +maxplayers 24 +map ctf_turbine -tickrate 66 +tv_port 27050 +tv_maxclients 32 +tv_enable 1 +exec server.cfg",
-                        "/bin/sh ./srcds_run -game tf -port 27045 -autoupdate +ip 176.9.138.143 +maxplayers 24 +map ctf_turbine -tickrate 66 +tv_port 27050 +tv_maxclients 32 +tv_enable 1 +exec server.cfg",
-                        "SCREEN -AmdS webrelay ./srcds_run -ip 176.9.138.143 -game tf -console +tv_maxclients 255 +exec relay.cfg +tv_port 27100 +tv_relay 176.9.138.143:27030 +password tv +tv_autorecord 1",
-                        "/bin/sh ./srcds_run -ip 176.9.138.143 -game tf -console +tv_maxclients 255 +exec relay.cfg +tv_port 27100 +tv_relay 176.9.138.143:27030 +password tv +tv_autorecord 1",
-                        "./srcds_linux -ip 176.9.138.143 -game tf -console +tv_maxclients 255 +exec relay.cfg +tv_port 27100 +tv_relay 176.9.138.143:27030 +password tv +tv_autorecord 1",
-                        "./srcds_linux -game tf -port 27025 -autoupdate +ip 176.9.138.143 +maxplayers 24 +map ctf_turbine -tickrate 66 +tv_port 27030 +tv_maxclients 32 +tv_enable 1"]
-      processes = []
-      other_processes.each_with_index do |process, index|
-        processes << double(:cmdline => process, :pid => 2000 + index)
-      end
-      processes << double(:cmdline => correct_process, :pid => 1337)
-      Sys::ProcTable.should_receive(:ps).and_return(processes)
-
-      subject.stub(:port => '27015')
-      subject.process_id.should eql 1337
-    end
-  end
-
   describe '#tf_dir' do
 
     it "takes the server's path and adds the TF2 dirs" do
@@ -185,6 +158,38 @@ describe LocalServer do
       subject.tf_dir.should eql '/foo/bar/tf'
     end
 
+  end
+
+  describe "#demos" do
+
+    it "uses a Dir glob to get the demos" do
+      subject.stub(:demo_match => "foo")
+      Dir.should_receive(:glob).with("foo")
+      subject.demos
+    end
+
+  end
+
+  describe "#logs" do
+
+    it "uses a Dir glob to get the logs" do
+      subject.stub(:log_match => "bar")
+      Dir.should_receive(:glob).with("bar")
+      subject.logs
+    end
+
+  end
+
+  describe "#log_copier_class" do
+    it "returns the log copier class" do
+      subject.log_copier_class.should eql(LocalLogCopier)
+    end
+  end
+
+  describe "#zip_file_creator_class" do
+    it "returns the zip file creator class" do
+      subject.zip_file_creator_class.should eql(LocalZipFileCreator)
+    end
   end
 
   describe '#current_reservation' do
@@ -277,9 +282,9 @@ describe LocalServer do
   describe "#copy_to_server" do
 
     it "uses a simple local copy" do
-      files = double(:files)
-      destination = double(:destination)
-      FileUtils.should_receive(:cp).with(files, destination)
+      files = ["foo", "bar"]
+      destination = "destination"
+      subject.should_receive("system").with("cp foo bar destination")
       subject.copy_to_server(files, destination)
     end
 
@@ -363,29 +368,6 @@ describe LocalServer do
       subject.should_receive(:write_configuration).with(subject.metamod_file, anything)
       subject.enable_plugins
     end
-  end
-
-  describe "#rating" do
-
-    let(:server)      { create :server }
-    let(:reservation) { create :reservation, :server => server }
-
-    it "retuns a rating between 0.0 and 1.0" do
-      server.rating.should == 1.0
-      good_rating = create_rating("good")
-      server.rating.should == 1.0
-      bad_rating = create_rating("bad")
-      server.rating.should == 0.5
-      good_rating.destroy
-      server.rating.should == 0.0
-      bad_rating.destroy
-      server.rating.should == 1.0
-    end
-
-    def create_rating(opinion)
-      create(:rating, :reservation => reservation, :opinion => opinion, :published => true)
-    end
-
   end
 
   def stubbed_reservation(stubs = {})

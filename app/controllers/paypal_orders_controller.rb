@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class PaypalOrdersController < ApplicationController
 
   skip_before_filter :block_users_with_expired_reservations
@@ -29,7 +30,7 @@ class PaypalOrdersController < ApplicationController
         redirect_to root_path
       end
     else
-      flash[:alert] = "Something went wrong while trying to activate your donator status, please contact us using the comment section"
+      flash[:alert] = "Something went wrong while trying to activate your donator status, please check if you have sufficient funds in your PayPal account"
       redirect_to root_path
     end
   end

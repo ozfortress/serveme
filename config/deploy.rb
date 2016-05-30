@@ -16,16 +16,16 @@ set :scm,               :git
 set :copy_compression,  :gzip
 set :use_sudo,          false
 set :user,              'tf2'
-set :rvm_ruby_string,   '2.2.1'
+set :rvm_ruby_string,   '2.3.0'
 set :rvm_type,          :system
 set :stage,             'production'
 set :maintenance_template_path, 'app/views/pages/maintenance.html.erb'
 set :sidekiq_options, "-c 10"
+set :deploy_to,         "/var/www/serveme"
 
 default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
 
-before 'deploy',                'app:idiotcheck'
 after 'deploy:finalize_update', 'app:symlink'
 after 'deploy',                 'deploy:cleanup'
 after "deploy:stop",            "logdaemon:stop"
@@ -35,30 +35,21 @@ after "deploy:restart",         "logdaemon:restart"
 namespace :app do
   desc "makes a symbolic link to the shared files"
   task :symlink, :roles => [:web, :app] do
-    run "ln -sf #{shared_path}/puma.rb #{release_path}/config/puma/production.rb"
-    run "ln -sf #{shared_path}/steam_api_key.rb #{release_path}/config/initializers/steam_api_key.rb"
-    run "ln -sf #{shared_path}/database.yml #{release_path}/config/database.yml"
-    run "ln -sf #{shared_path}/paypal.yml #{release_path}/config/paypal.yml"
-    run "ln -sf #{shared_path}/uploads #{release_path}/public/uploads"
+    run "ln -sf #{shared_path}/config/puma/production.rb #{release_path}/config/puma/production.rb"
+    run "ln -sf #{shared_path}/config/initializers/steam_api_key.rb #{release_path}/config/initializers/steam_api_key.rb"
+    run "ln -sf #{shared_path}/config/database.yml #{release_path}/config/database.yml"
+    run "ln -sf #{shared_path}/config/paypal.yml #{release_path}/config/paypal.yml"
+    run "ln -sf #{shared_path}/public/uploads #{release_path}/public/uploads"
     run "ln -sf #{shared_path}/server_logs #{release_path}/server_logs"
-    run "ln -sf #{shared_path}/raven.rb #{release_path}/config/initializers/raven.rb"
-    run "ln -sf #{shared_path}/logs_tf_api_key.rb #{release_path}/config/initializers/logs_tf_api_key.rb"
-    run "ln -sf #{shared_path}/maps_dir.rb #{release_path}/config/initializers/maps_dir.rb"
-    run "ln -sf #{shared_path}/secret_token.rb #{release_path}/config/initializers/secret_token.rb"
-    run "ln -sf #{shared_path}/locale.rb #{release_path}/config/initializers/locale.rb"
-    run "ln -sf #{shared_path}/devise.rb #{release_path}/config/initializers/devise.rb"
-    run "ln -sf #{shared_path}/site_url.rb #{release_path}/config/initializers/site_url.rb"
-    run "ln -sf #{shared_path}/GeoLiteCity.dat #{release_path}/doc/GeoLiteCity.dat"
-    run "ln -sf #{shared_path}/cacert.pem #{release_path}/config/cacert.pem"
-    run "ln -sf #{shared_path}/newrelic.yml #{release_path}/config/newrelic.yml"
-  end
-
-  desc "check if you're not an idiot"
-  task :idiotcheck, :roles => [:web, :app] do
-    app_controller = File.read(File.expand_path('../../app/controllers/application_controller.rb',  __FILE__))
-    if app_controller.match(/def current_user/)
-      raise "YOU FORGOT TO ENABLE AUTHENTICATION AGAIN IDIOT\n" * 100
-    end
+    run "ln -sf #{shared_path}/config/initializers/raven.rb #{release_path}/config/initializers/raven.rb"
+    run "ln -sf #{shared_path}/config/initializers/logs_tf_api_key.rb #{release_path}/config/initializers/logs_tf_api_key.rb"
+    run "ln -sf #{shared_path}/config/initializers/maps_dir.rb #{release_path}/config/initializers/maps_dir.rb"
+    run "ln -sf #{shared_path}/config/initializers/secret_token.rb #{release_path}/config/initializers/secret_token.rb"
+    run "ln -sf #{shared_path}/config/initializers/locale.rb #{release_path}/config/initializers/locale.rb"
+    run "ln -sf #{shared_path}/config/initializers/devise.rb #{release_path}/config/initializers/devise.rb"
+    run "ln -sf #{shared_path}/config/initializers/site_url.rb #{release_path}/config/initializers/site_url.rb"
+    run "ln -sf #{shared_path}/doc/GeoLiteCity.dat #{release_path}/doc/GeoLiteCity.dat"
+    run "ln -sf #{shared_path}/config/cacert.pem #{release_path}/config/cacert.pem"
   end
 
 end

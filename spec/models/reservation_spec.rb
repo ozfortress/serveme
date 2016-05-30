@@ -42,8 +42,8 @@ describe Reservation do
 
     it "has the nickname in it" do
       subject.stub(:server).and_return(mock_model(Server, :name => "Server Name"))
-      subject.stub(:user).and_return(mock_model(User, :uid => '1234', :nickname => "Nick Name"))
-      subject.server_name.should eql 'Server Name (Nick Name)'
+      subject.stub(:id).and_return(1337)
+      subject.server_name.should eql 'Server Name (#1337)'
     end
 
   end
@@ -268,6 +268,15 @@ describe Reservation do
       reservation = build :reservation
       reservation.server = create :server, :active => false
       reservation.should have(1).errors_on(:server_id)
+    end
+
+    it "doesn't allow plugins for non donators" do
+      reservation = build :reservation
+      reservation.enable_plugins = true
+      reservation.should have(1).errors_on(:enable_plugins)
+
+      reservation.user.stub(:donator? => true)
+      reservation.should have(:no).errors_on(:enable_plugins)
     end
 
     context "for non-donators" do
@@ -610,6 +619,7 @@ describe Reservation do
 
       message = "This reservation will end in less than 1 minute, if this server is not yet booked by someone else, you can say !extend for more time"
       server.should_receive(:rcon_say).with(message)
+      server.should_receive(:rcon_disconnect)
       subject.warn_nearly_over
     end
 
@@ -627,7 +637,7 @@ describe Reservation do
 
   end
 
-  describe "#tf2center?" do
+  describe "#lobby?" do
 
     it "checks the server's tags for TF2Center" do
       server = double
@@ -635,7 +645,7 @@ describe Reservation do
       server.should_receive("rcon_exec").with("sv_tags").and_return(tags_line)
       subject.stub(:server => server)
 
-      subject.should be_tf2center
+      subject.should be_lobby
     end
   end
 

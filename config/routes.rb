@@ -1,5 +1,5 @@
 require 'sidekiq/web'
-require 'sidetiq/web'
+require 'sidekiq/cron/web'
 
 Serveme::Application.routes.draw do
 
@@ -34,6 +34,7 @@ Serveme::Application.routes.draw do
     member do
       post :extend_reservation, :as => :extend
       match :idle_reset,        :via => [:get, :post], :as => :idle_reset
+      get :status,              :as => :status
     end
     collection do
       post :find_servers_for_user
@@ -63,13 +64,6 @@ Serveme::Application.routes.draw do
   resources :donators do
     collection do
       get :leaderboard
-    end
-  end
-
-  resources :ratings do
-    member do
-      post :publish
-      post :unpublish
     end
   end
 

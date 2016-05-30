@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class Reservation < ActiveRecord::Base
   attr_accessible :server, :user, :server_id, :user_id, :password, :rcon, :tv_password, :tv_relaypassword, :starts_at,
                   :ends_at, :provisioned, :ended, :server_config, :server_config_id, :whitelist, :whitelist_id, :inactive_minute_counter,
@@ -127,6 +128,7 @@ class Reservation < ActiveRecord::Base
     time_left_in_minutes  = (time_left / 60.0).ceil
     time_left_text        = I18n.t(:timeleft, :count => time_left_in_minutes)
     server.rcon_say("This reservation will end in less than #{time_left_text}, if this server is not yet booked by someone else, you can say !extend for more time")
+    server.rcon_disconnect
   end
 
   def cancellable?
@@ -197,9 +199,18 @@ class Reservation < ActiveRecord::Base
     reservation_statuses.create!(:status => status)
   end
 
-  def tf2center?
+  def lobby?
     tags = server.rcon_exec("sv_tags")
-    tags.include?("TF2Center")
+    tags && (tags.include?("TF2Center") || tags.include?("TF2Stadium")) || tags.include?("TF2Pickup")
+  end
+
+  def status
+    return "ended"            if past?
+    return "ready"            if ServerStatistic.where(reservation_id: id, server_id: server_id).any?
+    status_messages = reservation_statuses.pluck(:status)
+    return "ready"            if status_messages.grep(/Server finished loading map/).any?
+    return "starting"         if status_messages.include?("Starting")
+    return "waiting_to_start" if status_messages.include?("Waiting to start")
   end
 
   private

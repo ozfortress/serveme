@@ -5,7 +5,7 @@ A web-interface to reserve TF2 gameservers
 
 ## Requirements
 
-* Ruby, preferbly 2.1, but other versions might work. You should use [ruby-build](https://github.com/sstephenson/ruby-build/) to install Ruby.
+* Ruby, preferbly 2.2, but other versions might work. You should use [ruby-build](https://github.com/sstephenson/ruby-build/) to install Ruby.
 * A Steam API key for user sign in
 * Memcached
 * A Source game dedicated server installation, only tested with TF2 on linux for now.
@@ -215,6 +215,10 @@ If everything went alright, you'll get a HTTP 200 and shown your reservation det
     "logsecret": 298424416816498481223654962917404607282,
     "start_instantly": false,
     "end_instantly": false,
+    "server": {
+      "name": "Server name",
+      "ip_and_port": "127.0.0.1:27015"
+    },
     "errors": {}
   },
   "actions": {

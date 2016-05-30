@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class PaypalOrder < ActiveRecord::Base
   include PaypalPayment
 
@@ -49,9 +50,11 @@ class PaypalOrder < ActiveRecord::Base
 
   def self.monthly_goal(site_host = SITE_HOST)
     if site_host == "serveme.tf"
-      300.0
+      400.0
     elsif site_host == "na.serveme.tf"
-      100.0
+      175.0
+    elsif site_host == "au.serveme.tf"
+      75.0
     else
       50.0
     end

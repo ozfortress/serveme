@@ -23,28 +23,7 @@ describe ServerNotificationWorker do
     it "can send an ad to non donators" do
       reservation.stub(:user => non_donator)
       server.should_receive(:rcon_say).with("this is an ad")
-      ServerNotificationWorker.perform_async(reservation.id)
-    end
-
-    it "can send a donator notifications to donators" do
-      create :server_notification, notification_type: "donator", message: "thanks for donating"
-      reservation.stub(:user => donator)
-      server.should_receive(:rcon_say).with("thanks for donating")
-      ServerNotificationWorker.perform_async(reservation.id)
-    end
-
-    it "wont send an ad to donators" do
-      create :server_notification, notification_type: "ad", message: "this is a notification"
-      reservation.stub(:user => donator)
-      server.should_not_receive(:rcon_say).with("this is an ad")
-      ServerNotificationWorker.perform_async(reservation.id)
-    end
-
-    it "can use the user's name as a variable" do
-      create :server_notification, notification_type: "donator", message: "thanks for donating %{name}, you rock!"
-      donator.stub(:nickname => "Arie")
-      reservation.stub(:user => donator)
-      server.should_receive(:rcon_say).with("thanks for donating Arie, you rock!")
+      server.should_receive(:rcon_disconnect)
       ServerNotificationWorker.perform_async(reservation.id)
     end
 

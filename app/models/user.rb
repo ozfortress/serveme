@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class User < ActiveRecord::Base
   devise :omniauthable, :rememberable, :trackable
 
@@ -34,11 +35,11 @@ class User < ActiveRecord::Base
   end
 
   def donator?
-    @donator ||= groups.include?(Group.donator_group)
+    @donator ||= group_ids.include?(Group.donator_group.id)
   end
 
   def admin?
-    @admin ||= groups.include?(Group.admin_group)
+    @admin ||= group_ids.include?(Group.admin_group.id)
   end
 
   def maximum_reservation_length

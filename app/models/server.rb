@@ -1,6 +1,5 @@
+# frozen_string_literal: true
 class Server < ActiveRecord::Base
-
-  include ServerRatings
 
   attr_accessible :name, :path, :ip, :port
 
@@ -50,7 +49,7 @@ class Server < ActiveRecord::Base
 
   def self.in_groups(groups)
     with_group.
-    where(:groups => { :id => groups.map(&:id) }).
+    where(:groups => { :id => groups.pluck(:id) }).
     group('servers.id')
   end
 
@@ -156,15 +155,6 @@ class Server < ActiveRecord::Base
     end
   end
 
-  def restart
-    if process_id
-      logger.info "Killing process id #{process_id}"
-      kill_process
-    else
-      logger.error "No process_id found for server #{id} - #{name}"
-    end
-  end
-
   def start_reservation(reservation)
     update_configuration(reservation)
     if reservation.enable_plugins?
@@ -182,15 +172,16 @@ class Server < ActiveRecord::Base
 
   def end_reservation(reservation)
     return if reservation.ended?
-    rcon_exec("log off; tv_stoprecord")
+    rcon_exec("sv_logflush 1; tv_stoprecord; kickall Reservation ended, every player can download the STV demo at http:/​/#{SITE_HOST}")
+    sleep 1 # Give server a second to finish the STV demo and write the log
     reservation.status_update("Removing configuration and disabling plugins")
     remove_configuration
     disable_plugins
     zip_demos_and_logs(reservation)
     copy_logs(reservation)
     remove_logs_and_demos
-    rcon_exec("kickall Reservation ended, every player can download the STV demo at http:/​/#{SITE_HOST}")
     reservation.status_update("Restarting server")
+    rcon_disconnect
     restart
     reservation.status_update("Restarted server")
   end
@@ -219,16 +210,31 @@ class Server < ActiveRecord::Base
     begin
       condenser.rcon_exec(command) if rcon_auth
     rescue Errno::ECONNREFUSED, SteamCondenser::Error::Timeout, SteamCondenser::Error::RCONNoAuth, SteamCondenser::Error::RCONBan => exception
-      Rails.logger.error "Couldn't deliver command to server #{id} - #{name}, command: #{command}"
+      Rails.logger.error "Couldn't deliver command to server #{id} - #{name}, command: #{command}, exception: #{exception}"
+      nil
+    end
+  end
+
+  def rcon_disconnect
+    begin
+      condenser.disconnect
+    rescue Exception => exception
+      Rails.logger.error "Couldn't disconnect RCON of server #{id} - #{name}, exception: #{exception}"
+    ensure
+      @condenser = nil
     end
   end
 
   def number_of_players
     begin
-      @number_of_players ||= ServerInfo.new(self).number_of_players
+      @number_of_players ||= server_info.number_of_players
     rescue Errno::ECONNREFUSED, SteamCondenser::Error::Timeout
       nil
     end
+  end
+
+  def server_info
+    @server_info ||= ServerInfo.new(self)
   end
 
   private

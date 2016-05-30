@@ -1,11 +1,13 @@
+# frozen_string_literal: true
 class LogUpload < ActiveRecord::Base
 
   attr_accessible :file_name, :title, :map_name, :status, :url
 
   belongs_to :reservation
 
-  validates_presence_of :file_name, :reservation_id
-  validate :validate_log_file_exists
+  validates_presence_of :reservation_id
+  validates_presence_of :file_name,   :unless => :tftrue_upload?
+  validate :validate_log_file_exists, :unless => :tftrue_upload?
 
   def self.find_log_files(reservation_id)
     log_files = Dir.glob(log_matcher(reservation_id))
@@ -76,6 +78,10 @@ class LogUpload < ActiveRecord::Base
     unless log_file_exists?(file_name)
       errors.add(:file_name, "file does not exist")
     end
+  end
+
+  def tftrue_upload?
+    status == "TFTrue upload"
   end
 
 end

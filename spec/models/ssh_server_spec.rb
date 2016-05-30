@@ -16,6 +16,7 @@ describe SshServer do
 
     it "sends the software termination signal to the process" do
       subject.stub(:process_id => 1337)
+      Net::SSH.should_receive(:start).with(subject.ip, nil)
       subject.should_receive(:execute).with("kill -15 #{subject.process_id}")
       subject.restart
     end
@@ -86,21 +87,14 @@ describe SshServer do
       subject.execute(command)
     end
 
-    it "gets the command results by calling stdout on the ssh_exec result" do
-      command = 'foo'
-      subject.should_receive(:ssh_exec).with(command).and_return(double(:stdout => "Great success!"))
-      subject.execute(command).should == "Great success!"
-    end
-
   end
 
   describe '#ssh_exec' do
     it "calls the ssh API with ip and command" do
       command = double
-      ip = double
       ssh = double
-      subject.stub(:ssh => ssh, :ip => ip)
-      ssh.should_receive(:ssh).with(ip, command)
+      subject.stub(:ssh => ssh)
+      ssh.should_receive(:exec!).with(command)
 
       subject.ssh_exec(command)
     end
@@ -108,9 +102,9 @@ describe SshServer do
 
   describe '#ssh' do
 
-    it "creates the Net::SSH::Simple instance" do
+    it "creates the Net::SSH instance" do
       subject.stub(:ip => double)
-      Net::SSH::Simple.should_receive(:new).with({:host_name => subject.ip})
+      Net::SSH.should_receive(:start).with(subject.ip, nil)
       subject.ssh
     end
 
@@ -137,11 +131,8 @@ describe SshServer do
     it "uses scp to copy files to the server" do
       files = [File.join('foo')]
       destination = 'bar'
-      scp = double(:scp)
-      scp_upload = double(:scp_upload, :wait => true)
 
-      Net::SCP.should_receive(:start).with(subject.ip, nil).and_yield(scp)
-      scp.should_receive(:upload).with('foo', 'bar').and_return(scp_upload)
+      subject.should_receive("system").with("scp foo #{subject.ip}:bar")
       subject.copy_to_server(files, destination)
     end
   end
@@ -167,26 +158,10 @@ describe SshServer do
     it "uses the sftp instance to copy files from the server" do
       files = [File.join('foo')]
       destination = 'bar'
-      sftp = double :file
-      destination_file = double :file
 
-      File.should_receive(:new).with(destination, 'wb').and_return(destination_file)
-      Net::SFTP.should_receive(:start).with(subject.ip, nil).and_yield(sftp)
-      sftp.should_receive(:download).with(files.first, destination_file)
+      subject.should_receive(:system).with("scp #{subject.ip}:\"foo\" bar")
+
       subject.copy_from_server(files, destination)
-    end
-
-    it "can copy files to a destination dir" do
-      files = [File.join('foo')]
-      Dir.mktmpdir do |dir|
-        sftp = double :file
-        destination_file = double :file
-
-        File.should_receive(:new).with("#{dir}/foo", 'wb').and_return(destination_file)
-        Net::SFTP.should_receive(:start).with(subject.ip, nil).and_yield(sftp)
-        sftp.should_receive(:download).with(files.first, destination_file)
-        subject.copy_from_server(files, dir)
-      end
     end
 
   end

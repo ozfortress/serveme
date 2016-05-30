@@ -1,6 +1,7 @@
+# frozen_string_literal: true
 class ServersController < ApplicationController
 
-  skip_before_filter :authenticate_user!
+  before_filter :require_donator
   caches_action :index, :unless => :current_user, expires_in: 1.minute
 
   def index
