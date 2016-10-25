@@ -157,10 +157,10 @@ class Server < ActiveRecord::Base
 
   def start_reservation(reservation)
     update_configuration(reservation)
-    if reservation.enable_plugins?
-      enable_plugins
-      reservation.status_update("Enabled plugins")
-    end
+    #if reservation.enable_plugins?
+    enable_plugins
+    reservation.status_update("Enabled plugins")
+    #end
     reservation.status_update("Restarting server")
     restart
     reservation.status_update("Restarted server, waiting to boot")
@@ -176,7 +176,7 @@ class Server < ActiveRecord::Base
     sleep 1 # Give server a second to finish the STV demo and write the log
     reservation.status_update("Removing configuration and disabling plugins")
     remove_configuration
-    disable_plugins
+    #disable_plugins
     zip_demos_and_logs(reservation)
     copy_logs(reservation)
     remove_logs_and_demos
