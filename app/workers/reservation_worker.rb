@@ -8,8 +8,8 @@ class ReservationWorker
 
   def perform(reservation_id, action)
     @reservation_id = reservation_id
+    Rails.logger.debug("Performing #{action} on reservation #{reservation_id}")
     begin
-      Rails.logger.debug("Performing #{action} on reservation #{reservation_id}")
       $lock.synchronize("#{action}-reservation-#{reservation_id}", retries: 1, expiry: 2.minutes) do
         @reservation = Reservation.find(reservation_id)
         server = reservation.server

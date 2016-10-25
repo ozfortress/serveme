@@ -26,6 +26,7 @@ class ReservationManager
   end
 
   def manage_reservation(action)
+    Rails.logger.info("Managing reservation #{reservation}. Action: #{action}")
     ReservationWorker.perform_async(reservation.id, action.to_s)
   end
 end
