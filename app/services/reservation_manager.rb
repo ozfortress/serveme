@@ -9,16 +9,19 @@ class ReservationManager
   end
 
   def start_reservation
+    Rails.logger.info("Starting reservation #{reservation}")
     reservation.reservation_statuses.create!(:status => "Starting")
     manage_reservation(:start)
   end
 
   def end_reservation
+    Rails.logger.info("Ending reservation #{reservation}")
     reservation.reservation_statuses.create!(:status => "Ending")
     manage_reservation(:end) unless reservation.ended?
   end
 
   def update_reservation
+    Rails.logger.info("Updating reservation #{reservation}")
     manage_reservation(:update)
   end
 
