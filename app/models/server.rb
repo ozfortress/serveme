@@ -74,14 +74,14 @@ class Server < ActiveRecord::Base
   end
 
   def tv_port
-    port.to_i + 5
+    port.to_i + 1
   end
 
   def update_configuration(reservation)
     reservation.status_update("Sending reservation config files")
-    ['reservation.cfg', 'ctf_turbine.cfg'].each do |config_file|
+    ['reservation'].each do |config_file|
       config_body = generate_config_file(reservation, config_file)
-      write_configuration(server_config_file(config_file), config_body)
+      write_configuration(config_file_path(config_file), config_body)
     end
     reservation.status_update("Finished sending reservation config files")
   end
@@ -108,7 +108,7 @@ class Server < ActiveRecord::Base
   end
 
   def generate_config_file(reservation, config_file)
-    template         = File.read(Rails.root.join("lib/#{config_file}.erb"))
+    template         = File.read(Rails.root.join("lib/gameserver/templates/#{config_file}.cfg.erb"))
     renderer         = ERB.new(template)
     renderer.result(reservation.get_binding)
   end
@@ -259,8 +259,14 @@ class Server < ActiveRecord::Base
     "steam://connect/#{ip}:#{port}/#{password}"
   end
 
+  def config_file_path(config_file)
+    return reservation_config_file if config_file == "reservation"
+
+    return server_config_file(config_file)
+  end
+
   def server_config_file(config_file)
-    "#{tf_dir}/cfg/#{config_file}"
+    return "#{tf_dir}/cfg/#{config_file}"
   end
 
   def reservation_config_file
