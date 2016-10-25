@@ -5,7 +5,6 @@ require "./config/deploy/logdaemon"
 set :stages,            %w(au)
 set :default_stage,     "au"
 set :application,       "serveme"
-set :deploy_to,         "/var/www/serveme"
 set :use_sudo,          false
 set :main_server,       "ozfortress.com"
 set :keep_releases,     10
@@ -15,13 +14,13 @@ set :branch,            'master'
 set :scm,               :git
 set :copy_compression,  :gzip
 set :use_sudo,          false
-set :user,              'tf2'
-set :rvm_ruby_string,   '2.3.0'
+set :user,              'serveme'
+set :rvm_ruby_string,   '2.2.0'
 set :rvm_type,          :system
 set :stage,             'production'
 set :maintenance_template_path, 'app/views/pages/maintenance.html.erb'
 set :sidekiq_options, "-c 10"
-set :deploy_to,         "/var/www/serveme"
+set :deploy_to,         "/home/serveme/deployed"
 
 default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
