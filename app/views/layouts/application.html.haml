@@ -24,13 +24,13 @@
 
       .row
         .col-md-12
-          .flash.alert.alert-success
-            LINK TO SOMETHING HERE?
-
-      .row
-        .col-md-12
           = render 'shared/flash'
 
       = yield
+
+      .row
+        .col-md-12
+          .flash.alert.alert-success
+            LINK TO SOMETHING HERE?
 
       = render 'shared/timezone'
