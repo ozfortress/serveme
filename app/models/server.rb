@@ -264,7 +264,7 @@ class Server < ActiveRecord::Base
   end
 
   def reservation_config_file
-    server_config_file('reservation.cfg')
+    server_config_file("reservations/#{port}.cfg")
   end
 
   def initial_map_config_file
