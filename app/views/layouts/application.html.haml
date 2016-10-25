@@ -25,30 +25,12 @@
       .row
         .col-md-12
           .flash.alert.alert-success
-            We've opened a
-            = link_to("discord", "https://discord.gg/0s38RdItLiCmARMm", target: "_blank")
-            for any questions, complaints, praise or just to say hi
+            LINK TO SOMETHING HERE?
 
-      - if !donator?
-        .row
-          .col-md-12
-            = render 'shared/adsense_responsive'
+      .row
+        .col-md-12
+          = render 'shared/flash'
 
-          .row
-            .col-md-11
-              .row
-                .col-md-12
-                  = render 'shared/flash'
-
-              = yield
-
-            .col-md-1
-              = render 'shared/adsense_sidebar'
-      - else
-        .row
-          .col-md-12
-            = render 'shared/flash'
-
-        = yield
+      = yield
 
       = render 'shared/timezone'

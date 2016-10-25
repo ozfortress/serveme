@@ -15,21 +15,7 @@
               I'm feeling lucky
               %i.fa.fa-bolt
           .col-md-4
-            - if na_system?
-              .sponsor
-                = render 'shared/na_sponsor'
-                .available_servers= render 'reservations/available_servers'
-            - else
-              .available_servers= render 'reservations/available_servers'
-
-- if na_system?
-  .row
-    .col-md-12
-      .alert.alert-success
-        %h4
-          Exclusive 30% off your next game, voice and VPS server at tragicservers.com.
-        = link_to('Order today', "http://www.tragicservers.com/link.php?id=15")
-        using "SERVEME30" at checkout
+            .available_servers= render 'reservations/available_servers'
 
 .row
   .col-md-12
@@ -38,29 +24,7 @@
       and within a few minutes your server will be ready and yours to use.
       Feel free to use the server for any kind of match you want.
 
-.row
-  .col-md-12
-    %p
-      Please
-      = link_to('consider contributing to the operating costs by donating.', donate_path)
-      All donations get divided between the server providers based on time played on their servers.
-
-      You can also
-      = link_to('send me a TF2 trade offer.', 'http://steamcommunity.com/tradeoffer/new/?partner=231702&token=a3jCFRBO')
-      The current rate is 1 key per month, but you can also send some items just to say thanks.
-
-
-.row
-  = render "shared/donation_target"
-
 .row &nbsp;
-
-.row
-  .col-md-12
-    = link_to("Leave a comment", "#leave-a-comment")
-    if you like this service, had a problem or suggestion, I'd really appreciate it!
-    Alternatively, you could leave a comment on the
-    = link_to "ETF2L forums", 'http://etf2l.org/forum/community/topic-23191/?recent=427024', :target => '_blank'
 
 .row &nbsp;
 
@@ -76,10 +40,3 @@
   .row
     .col-md-12
       = render 'reservations/users_reservations'
-
-.row
-  .col-md-12
-    %h3 Comments
-
-    #leave-a-comment
-      = render 'shared/disqus'
